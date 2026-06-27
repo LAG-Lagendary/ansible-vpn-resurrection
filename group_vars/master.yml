@@ -1,0 +1,6 @@
+---
+# Переменные только для Головы (Marzban Master)
+tg_bot_token: "YOUR_TELEGRAM_BOT_TOKEN_HERE"   # Полученный от @BotFather
+tg_admin_id: "YOUR_TELEGRAM_ADMIN_ID_HERE"     # ID вашего Telegram-аккаунта
+marzban_admin_user: "admin"
+marzban_admin_pass: "SuperSecurePassword123"   # Замените на надежный пароль

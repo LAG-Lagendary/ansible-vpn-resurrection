@@ -1,0 +1,12 @@
+---
+- name: "Deploy High-Performance Infrastructure Nodes"
+  hosts: node_servers
+  become: true
+  gather_facts: true
+  vars:
+    # Автоматическое определение внешнего сетевого интерфейса по умолчанию
+    network_interface: "{{ ansible_default_ipv4.interface | default('eth0') }}"
+  roles:
+    - role: common
+    - role: kernel_extreme
+    - role: marzban_node

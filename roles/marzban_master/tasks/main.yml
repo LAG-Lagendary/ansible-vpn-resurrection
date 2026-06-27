@@ -1,0 +1,52 @@
+---
+- name: Create Marzban master directory structure
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/marzban
+    - /var/lib/marzban
+
+- name: Deploy Marzban Master .env configuration
+  ansible.builtin.copy:
+    dest: "/opt/marzban/.env"
+    mode: '0600'
+    content: |
+      SUDO_USERNAME={{ marzban_admin_user }}
+      SUDO_PASSWORD={{ marzban_admin_pass }}
+      TELEGRAM_TOKEN={{ tg_bot_token }}
+      TELEGRAM_ADMINS=[{{ tg_admin_id }}]
+      JWT_SECRET_KEY="{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+
+- name: Deploy Marzban Master docker-compose.yml
+  ansible.builtin.copy:
+    dest: "/opt/marzban/docker-compose.yml"
+    mode: '0644'
+    content: |
+      version: '3.8'
+      services:
+        marzban:
+          image: gozargah/marzban:latest
+          container_name: marzban
+          restart: always
+          env_file: .env
+          network_mode: host
+          volumes:
+            - /var/lib/marzban:/var/lib/marzban
+
+- name: Start Marzban Master Stack via Docker Compose
+  ansible.builtin.shell:
+    cmd: "docker compose up -d"
+    chdir: "/opt/marzban"
+  changed_when: true
+
+- name: Configure Firewall Rules for Master
+  ansible.builtin.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "8000"  # Панель Marzban Dashboard
+    - "443"   # HTTPS
+    - "80"    # HTTP

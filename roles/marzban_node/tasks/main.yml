@@ -1,0 +1,51 @@
+---
+- name: Create Marzban Node directory structure
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/marzban-node
+    - /var/lib/marzban-node
+
+- name: Deploy Master Public Key for Node Registration
+  ansible.builtin.copy:
+    dest: "/var/lib/marzban-node/ssl_client_cert.pem"
+    content: "{{ marzban_master_public_key }}"
+    mode: '0644'
+
+- name: Deploy Marzban Node docker-compose.yml
+  ansible.builtin.copy:
+    dest: "/opt/marzban-node/docker-compose.yml"
+    mode: '0644'
+    content: |
+      version: '3.8'
+      services:
+        marzban-node:
+          image: gozargah/marzban-node:latest
+          container_name: marzban-node
+          restart: always
+          network_mode: host
+          volumes:
+            - /var/lib/marzban-node:/var/lib/marzban-node
+          environment:
+            - SERVICE_PORT=62050
+            - XRAY_API_PORT=62051
+
+- name: Start Marzban Node Stack via Docker Compose
+  ansible.builtin.shell:
+    cmd: "docker compose up -d"
+    chdir: "/opt/marzban-node"
+  changed_when: true
+
+- name: Pin Marzban-Node Container to isolated CPU Core 0
+  ansible.builtin.shell: "docker update --cpuset-cpus {{ xray_cpu_core }} marzban-node"
+  changed_when: true
+  failed_when: false
+
+- name: Open production ports on Node (UFW)
+  ansible.builtin.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop: "{{ client_ports }}"
