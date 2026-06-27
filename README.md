@@ -1,6 +1,6 @@
 # Инфраструктура Marzban (Master + High Performance Nodes) на Ansible
 
-IT's not tast, sorry. I need time!
+IT's not test, sorry. I need time!
 
 Репозиторий настроен на автоматическое развертывание VPN-панели Marzban ("Головы") и сетевых нод ("Ног") с экстремальным тюнингом производительности ядра Linux.
 
